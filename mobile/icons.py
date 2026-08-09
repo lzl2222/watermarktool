@@ -14,6 +14,12 @@ def _base(size):
     img = Image.new("RGBA", (s, s), (0, 0, 0, 0))
     return img, ImageDraw.Draw(img), s
 
+def _rgb255(h):
+    """#RRGGBB -> (r,g,b,255) 整数，供 PIL 绘制"""
+    h = (h or "#000000").lstrip("#")
+    return tuple(int(h[i:i+2], 16) for i in (0, 2, 4)) + (255,)
+
+
 def _tex(img, size):
     buf = BytesIO()
     img.save(buf, format="png")
@@ -25,7 +31,7 @@ def _tex(img, size):
 def draw_icon(name, size, color):
     """返回 PIL 图像（绘制单个图标）"""
     img, d, s = _base(size)
-    c = hex2rgba(color, 1.0)
+    c = _rgb255(color)
     w = s * 0.12          # 线宽
     if name == "play":
         d.polygon([(s*0.36, s*0.18), (s*0.82, s*0.50), (s*0.36, s*0.82)], fill=c)
@@ -38,7 +44,7 @@ def draw_icon(name, size, color):
         d.polygon([(s*0.24, s*0.50), (s*0.76, s*0.50), (s*0.50, s*0.80)], fill=c)            # 箭头
         d.rounded_rectangle([s*0.22, s*0.80, s*0.78, s*0.88], radius=s*0.03, fill=c)          # 托盘
     elif name == "check":
-        d.line([(s*0.22, s*0.52), (s*0.42, s*0.72), (s*0.80, s*0.28)], fill=c, width=int(w), joint="curve")
+        d.line([(s*0.22, s*0.52), (s*0.42, s*0.72), (s*0.80, s*0.28)], fill=c, width=int(w), joint="round")
     elif name == "image":
         d.rounded_rectangle([s*0.14, s*0.22, s*0.86, s*0.78], radius=s*0.10, outline=c, width=int(w))
         d.ellipse([s*0.26, s*0.32, s*0.42, s*0.48], outline=c, width=int(w))
@@ -51,10 +57,10 @@ def draw_icon(name, size, color):
         d.polygon([(s*0.40, s*0.34), (s*0.66, s*0.50), (s*0.40, s*0.66)], fill=c)
     elif name == "history":
         d.ellipse([s*0.12, s*0.12, s*0.88, s*0.88], outline=c, width=int(w))
-        d.line([(s*0.50, s*0.28), (s*0.50, s*0.52), (s*0.68, s*0.62)], fill=c, width=int(w), joint="curve")
+        d.line([(s*0.50, s*0.28), (s*0.50, s*0.52), (s*0.68, s*0.62)], fill=c, width=int(w), joint="round")
     elif name == "moon":
         d.ellipse([s*0.18, s*0.18, s*0.82, s*0.82], outline=c, width=int(w))
-        d.ellipse([s*0.44, s*0.30, s*0.86, s*0.72], fill=hex2rgba("#FFFFFF", 0.0), outline=c, width=int(w))
+        d.ellipse([s*0.44, s*0.30, s*0.86, s*0.72], fill=(255, 255, 255, 0), outline=c, width=int(w))
     elif name == "sun":
         for ang in range(0, 360, 45):
             import math
@@ -75,7 +81,7 @@ def draw_icon(name, size, color):
     elif name == "arrow_right":
         d.polygon([(s*0.32, s*0.20), (s*0.74, s*0.50), (s*0.32, s*0.80)], fill=c)
     elif name == "chevron_up":
-        d.line([(s*0.30, s*0.58), (s*0.50, s*0.38), (s*0.70, s*0.58)], fill=c, width=int(w), joint="curve")
+        d.line([(s*0.30, s*0.58), (s*0.50, s*0.38), (s*0.70, s*0.58)], fill=c, width=int(w), joint="round")
     elif name == "app":
         d.rounded_rectangle([s*0.10, s*0.10, s*0.90, s*0.90], radius=s*0.20, fill=c)
         d.ellipse([s*0.38, s*0.36, s*0.62, s*0.64], fill=(255, 255, 255, 255))

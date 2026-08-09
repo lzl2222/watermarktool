@@ -15,6 +15,7 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 from kivy.app import App
+from kivy.animation import Animation
 from kivy.clock import Clock
 from kivy.core.window import Window
 from kivy.metrics import dp
@@ -79,18 +80,17 @@ def _gradient_texture(width, height, stops):
     return KImage(buf, ext="png").texture
 
 
-def _img_texture_from_url(url, target_w, target_h):
-    """下载图片 -> 缩放 -> 纹理（缩略图用）"""
+def _img_bytes_from_url(url, target_w, target_h):
+    """线程内：下载图片 -> 缩放 -> PNG 字节（纹理创建必须回主线程）"""
     try:
         r = _HTTP.get(url, timeout=10)
         if r.status_code != 200:
             return None
         img = PILImage.open(io.BytesIO(r.content)).convert("RGB")
-        img.thumbnail((target_w * 2, target_h * 2), PILImage.LANCZOS)
+        img.thumbnail((max(int(target_w * 2), 64), max(int(target_h * 2), 64)), PILImage.LANCZOS)
         buf = io.BytesIO()
         img.save(buf, format="png")
-        buf.seek(0)
-        return KImage(buf, ext="png").texture
+        return buf.getvalue()
     except Exception:
         return None
 
@@ -137,11 +137,18 @@ class MediaCell(ButtonBehavior, Widget):
         self._type_pill.size_hint = (None, None)
         self._type_pill.size = (dp(44), dp(22))
         self.add_widget(self._type_pill)
+        # 加载占位图标（缩略图未就绪时显示，避免黑块）
+        self._ph = icons.icon("video" if item.get("type") == "video" else "image", 44,
+                              self.T["text_faint"])
+        self._ph.size_hint = (None, None)
+        self._ph.size = (dp(44), dp(44))
+        self.add_widget(self._ph)
         self.bind(pos=self._layout, size=self._layout)
         self._load_thumb()
 
     def _layout(self, *a):
         self._type_pill.pos = (self.x + dp(4), self.y + dp(4))
+        self._ph.center = (self.center_x, self.center_y)
         self._draw_bg()
         self._draw_check()
 
@@ -163,7 +170,7 @@ class MediaCell(ButtonBehavior, Widget):
             if self.selected:
                 Color(1, 1, 1, 1)
                 Line(points=[cx - dp(4), cy, cx - dp(1), cy + dp(4), cx + dp(5), cy - dp(4)],
-                     width=dp(2), joint="curve")
+                     width=dp(2), joint="round")
 
     def set_selected(self, val):
         self.selected = val
@@ -179,19 +186,31 @@ class MediaCell(ButtonBehavior, Widget):
 
     def _load_thumb(self):
         url = self.item.get("thumb") or self.item.get("url", "")
+        tw = int(self.width or 160)
+        th = int(self.height or 160)
 
         def _bg():
-            tex = _img_texture_from_url(url, int(self.width or 160), int(self.height or 160))
-            if tex:
-                self._thumb = tex
-                self._thumb_loaded = True
-                Clock.schedule_once(lambda dt: self._apply_thumb())
+            data = _img_bytes_from_url(url, tw, th)
+            if data:
+                Clock.schedule_once(lambda dt: self._apply_thumb_data(data))
 
         threading.Thread(target=_bg, daemon=True).start()
+
+    def _apply_thumb_data(self, data):
+        try:
+            self._thumb = KImage(io.BytesIO(data), ext="png").texture
+            self._thumb_loaded = True
+            self._apply_thumb()
+        except Exception:
+            pass
 
     def _apply_thumb(self):
         if not self._thumb_loaded:
             return
+        try:
+            self.remove_widget(self._ph)
+        except Exception:
+            pass
         self.canvas.clear()
         with self.canvas:
             Color(1, 1, 1, 1)
@@ -231,11 +250,16 @@ class WatermarkApp(App):
     # ── 构建：头部 ──────────────────────────────────────────────────────────
     def _build_header(self):
         hdr = FloatLayout(size_hint_y=None, height=dp(64))
-        self._hdr_tex = _gradient_texture(720, 128, self.T["grad"])
-        with hdr.canvas.before:
-            Color(1, 1, 1, 1)
-            self._hdr_rect = Rectangle(texture=self._hdr_tex, pos=(0, 0), size=(Window.width, dp(64)))
-        hdr.bind(size=lambda *a: setattr(self._hdr_rect, "size", (hdr.width, hdr.height)))
+        self._hdr_tex = _gradient_texture(max(int(Window.width), 320), int(dp(64) * 2), self.T["grad"])
+        self._hdr_rect = Rectangle(texture=self._hdr_tex)
+        hdr.canvas.add(Color(1, 1, 1, 1))
+        hdr.canvas.add(self._hdr_rect)
+
+        def _update_hdr(*a):
+            self._hdr_rect.pos = hdr.pos
+            self._hdr_rect.size = hdr.size
+        hdr.bind(pos=_update_hdr, size=_update_hdr)
+        Clock.schedule_once(lambda dt: _update_hdr(), 0)
 
         title = Label(text="去水印", font_size=dp(20), bold=True,
                       color=mtheme.hex2rgba(self.T["header_text"]),
@@ -263,7 +287,9 @@ class WatermarkApp(App):
             hint_text="粘贴 豆包/小红书/抖音 分享链接（支持整段文案）",
             multiline=True, size_hint_y=None, height=dp(58),
             padding=(dp(12), dp(12)),
-            background_color=(1, 1, 1, 0) if self.T["name"] == "深色" else (1, 1, 1, 0),
+            background_color=(0, 0, 0, 0),
+            background_normal="",
+            background_active="",
             foreground_color=mtheme.hex2rgba(self.T["text"]),
             hint_text_color=mtheme.hex2rgba(self.T["placeholder"]),
             cursor_color=mtheme.hex2rgba(self.T["accent"]),

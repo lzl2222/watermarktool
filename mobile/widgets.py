@@ -131,7 +131,7 @@ class ProgressCapsule(Widget):
                             color=hex2rgba("#FFFFFF", 1.0), size_hint=(None, None))
         self.add_widget(self._label)
         self.bind(pos=self._redraw, size=self._redraw, progress=self._redraw,
-                  state=self._redraw, text=self._set_text)
+                  state=self._redraw)
         self._redraw()
 
     def _set_text(self, *a):

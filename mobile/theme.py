@@ -10,6 +10,7 @@ THEMES = {
         "primary": "#EC4899",      # 视频粉（品牌）
         "accent": "#2563EB",       # 时序蓝（主操作）
         "accent_down": "#1D4ED8",
+        "accent2": "#8B5CF6",
         "panel": "#1B2536",
         "panel_border": "#33415A",
         "text": "#F1F5F9",
@@ -30,6 +31,7 @@ THEMES = {
         "primary": "#7C3AED",
         "accent": "#2563EB",
         "accent_down": "#1D4ED8",
+        "accent2": "#D946EF",
         "panel": "#FFFFFF",
         "panel_border": "#E3E3EC",
         "text": "#1D1D1F",
