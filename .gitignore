@@ -6,3 +6,6 @@ codex_logs2_backup_*
 .continue/
 .venv/
 venv/
+
+doubao-nomark/
+doubao-video-downloader/
