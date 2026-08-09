@@ -32,11 +32,11 @@ jobs:
         working-directory: app-rn/android
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug
+          ./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: watermarktool-apk
-          path: app-rn/android/app/build/outputs/apk/debug/*.apk
+          name: watermarktool-release-apk
+          path: app-rn/android/app/build/outputs/apk/release/*.apk
           if-no-files-found: error
