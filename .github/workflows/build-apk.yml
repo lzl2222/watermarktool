@@ -1,0 +1,42 @@
+﻿name: Build Android APK (Expo)
+
+on:
+  push:
+    paths:
+      - "app-rn/**"
+      - ".github/workflows/build-apk.yml"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        working-directory: app-rn
+        run: npm install --no-audit --no-fund
+
+      - name: Prebuild Android project
+        working-directory: app-rn
+        run: npx expo prebuild --platform android --no-install
+
+      - name: Build debug APK
+        working-directory: app-rn/android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: watermarktool-apk
+          path: app-rn/android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
