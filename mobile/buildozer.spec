@@ -3,7 +3,7 @@ title = 去水印
 package.name = watermarktool
 package.domain = org.watermark
 source.dir = .
-source.include_exts = py,png,jpg,kv,atlas,ttf,md,txt
+source.include_exts = py,png,jpg,kv,atlas,ttf,otf,md,txt
 version = 0.1.0
 
 requirements = python3,kivy==2.3.0,requests,pycryptodome,ffpyplayer
