@@ -16,3 +16,4 @@ mobile/downloads/
 mobile/history.db
 mobile/bin/
 mobile/.buildozer/
+_build_log*.txt
