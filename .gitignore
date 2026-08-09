@@ -19,3 +19,5 @@ mobile/.buildozer/
 _build_log*.txt
 _log*.txt
 _log*.txt
+*.apk
+watermarktool-apk.zip
