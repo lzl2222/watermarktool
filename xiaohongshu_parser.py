@@ -121,7 +121,7 @@ def _resolve_link(url: str):
         return url, note_id, token
     if note_id and not token:
         # 已是笔记长链但缺少 xsec_token → 不再重定向（省请求），由后续流程给出清晰错误
-        return url, note_id, 
+        return url, note_id, ""
 
     # 跟随重定向（短链）
     try:
@@ -557,6 +557,12 @@ def parse(text_or_url: str) -> dict:
     final_url, note_id, xsec_token = _resolve_link(url)
     if not note_id:
         raise ValueError("无法从链接中解析笔记 ID，请检查链接是否正确。")
+    if not xsec_token:
+        # 小红书笔记页必须携带 xsec_token，缺失会 404 —— 直接给出清晰提示，省去无效请求
+        raise RuntimeError(
+            "链接缺少访问凭证（xsec_token）。\n"
+            "请重新从小红书 App 复制分享链接（含完整 xsec_token）。"
+        )
 
     # 2. 获取页面
     html = _fetch_note_page(note_id, xsec_token)
