@@ -64,24 +64,43 @@ async function parseViaPublicApi(shareUrl: string): Promise<NoteMeta> {
 async function parseViaSharePage(shareUrl: string): Promise<NoteMeta> {
   const videoId = await resolveVideoId(shareUrl);
   if (!videoId) throw new Error("无法从链接解析 video_id");
+  // 移动 UA：iesdouyin 分享页才会返回 _ROUTER_DATA 视频数据
+  const UA_MOBILE = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1";
   const res = await fetch(`https://www.iesdouyin.com/share/video/${videoId}/`, {
-    headers: { "User-Agent": UA, Referer: "https://www.douyin.com/" },
+    headers: { "User-Agent": UA_MOBILE, Referer: "https://www.douyin.com/" },
   });
   const html = await res.text();
-  let videoUrl = "";
-  for (const pat of [/<meta\s+property="og:video(?::url)?"\s+content="([^"]+)"/, /<meta\s+name="og:video"\s+content="([^"]+)"/, /"video_url"\s*:\s*"([^"]+)"/]) {
-    const m = html.match(pat);
-    if (m) { videoUrl = m[1]; break; }
+  const m = html.match(/window\._ROUTER_DATA\s*=\s*(\{.*?\})\s*<\/script>/s);
+  if (!m) throw new Error("分享页未包含视频数据");
+
+  let data: any;
+  try { data = JSON.parse(m[1]); }
+  catch {
+    data = JSON.parse(m[1].replace(/([,:]\s*)undefined(\s*[,\]}])/g, "$1null$2")
+      .replace(/:!0([,\]}])/g, ":true$1").replace(/:!1([,\]}])/g, ":false$1"));
   }
-  if (!videoUrl) throw new Error("Share 页解析失败，页面未找到视频链接");
-  const coverM = html.match(/<meta\s+property="og:image"\s+content="([^"]+)"/);
-  const titleM = html.match(/<meta\s+property="og:title"\s+content="([^"]+)"/);
+
+  // 递归找 item（含 video.play_addr.url_list 与 desc 的对象）
+  let item: any = null;
+  (function walk(o: any): boolean {
+    if (!o || typeof o !== "object") return false;
+    if (o.video?.play_addr?.url_list?.length && typeof o.desc === "string") { item = o; return true; }
+    for (const k of Object.keys(o)) { if (walk(o[k])) return true; }
+    return false;
+  })(data);
+
+  if (!item) throw new Error("分享页数据中未找到视频信息");
+  const list: string[] = item.video.play_addr.url_list || [];
+  let videoUrl = list.find((u: string) => !u.includes("playwm")) || list[0] || "";
+  if (!videoUrl) throw new Error("未找到视频播放地址");
   videoUrl = removeWm(videoUrl);
+  const cover = item.video.cover?.url_list?.[0] || "";
+  const author = item.author?.nickname || "抖音用户";
   return {
-    platform: "douyin", type: "video", note_id: videoId, title: titleM?.[1] || "",
-    author: "抖音用户", cover_url: coverM?.[1] || "",
-    media_items: [{ type: "video", url: videoUrl, thumb: coverM?.[1] || "", index: 0 }],
-    text: titleM?.[1] || "", no_watermark: true,
+    platform: "douyin", type: "video", note_id: String(item.aweme_id || videoId),
+    title: item.desc || "", author: String(author), cover_url: cover || "",
+    media_items: [{ type: "video", url: videoUrl, thumb: cover || "", index: 0 }],
+    text: item.desc || "", no_watermark: true,
   };
 }
 
