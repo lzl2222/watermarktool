@@ -437,12 +437,31 @@ class WatermarkApp(App):
         box.add_widget(head)
 
         item = meta["media_items"][0]
-        from kivy.uix.videoplayer import VideoPlayer
-        player = VideoPlayer(source=item["url"], state="stop",
-                             thumbnail=meta.get("cover_url") or item.get("thumb", ""),
-                             size_hint=(None, None), size=(dp(200), dp(356)))
-        player.pos_hint = {"center_x": 0.5}
-        box.add_widget(player)
+        cover = meta.get("cover_url") or item.get("thumb", "")
+        # 封面 + 系统播放器预览（不依赖 ffpyplayer，Android 构建更稳）
+        prev = FloatLayout(size_hint=(None, None), size=(dp(200), dp(356)))
+        prev.pos_hint = {"center_x": 0.5}
+        if cover:
+            def _load_cover():
+                data = _img_bytes_from_url(cover, 400, 712)
+                if data:
+                    Clock.schedule_once(lambda dt: _apply_cover(data))
+            def _apply_cover(data):
+                try:
+                    tex = KImage(io.BytesIO(data), ext="png").texture
+                    prev.canvas.clear()
+                    with prev.canvas:
+                        Color(1, 1, 1, 1)
+                        Rectangle(texture=tex, pos=prev.pos, size=prev.size)
+                except Exception:
+                    pass
+            threading.Thread(target=_load_cover, daemon=True).start()
+        pb = GlassButton(text="播放预览", primary=True, height=44, font_size=14, T=T)
+        pb.size = (dp(150), dp(44))
+        pb.pos_hint = {"center_x": 0.5, "center_y": 0.5}
+        pb.bind(on_release=lambda *a: self._preview_video(item["url"]))
+        prev.add_widget(pb)
+        box.add_widget(prev)
 
         info = f"作者 {meta.get('author','')}"
         if meta.get("width") and meta.get("height"):
@@ -635,6 +654,24 @@ class WatermarkApp(App):
         self._progress.fail()
         self._set_status(f"下载失败：{msg[:40]}", self.T["err"])
         Clock.schedule_once(self._reset_bottom, 2.5)
+
+    def _preview_video(self, url):
+        """用 Android 系统播放器预览视频（无需 ffpyplayer）"""
+        if storage.IS_ANDROID:
+            try:
+                from jnius import autoclass
+                Intent = autoclass("android.content.Intent")
+                Uri = autoclass("android.net.Uri")
+                PythonActivity = autoclass("org.kivy.android.PythonActivity")
+                intent = Intent(Intent.ACTION_VIEW)
+                intent.setDataAndType(Uri.parse(url), "video/mp4")
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                PythonActivity.mActivity.startActivity(intent)
+                return
+            except Exception:
+                pass
+        import webbrowser
+        webbrowser.open(url)
 
     def _reset_bottom(self, dt=None):
         self._progress.opacity = 0
