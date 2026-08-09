@@ -1,0 +1,29 @@
+{
+  "expo": {
+    "name": "去水印",
+    "slug": "watermark-tool-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "org.watermark.tool"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "newArchEnabled": true,
+    "plugins": [
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "允许「去水印」访问相册以保存下载的图片和视频",
+          "savePhotosPermission": "允许「去水印」保存图片和视频到相册"
+        }
+      ]
+    ]
+  }
+}
