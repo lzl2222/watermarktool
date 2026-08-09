@@ -59,13 +59,26 @@ _MIME = {"image/jpeg": "image/jpeg", "image/jpg": "image/jpeg", "image/png": "im
 
 
 def _setup_font():
-    """桌面调试用中文字体（Android 系统自带 CJK，无需设置）"""
-    if not storage.IS_ANDROID:
+    """注册中文字体为默认字体（Kivy 自带 Roboto 不含中文，必须指定 CJK 字体）。
+    优先使用 APK 内置的思源黑体（OFL 许可），桌面调试与 Android 完全一致。"""
+    from kivy.core.text import LabelBase
+    bundled = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                           "fonts", "SourceHanSansSC-Regular.otf")
+    if os.path.exists(bundled):
         try:
-            from kivy.core.text import LabelBase
-            LabelBase.register("Roboto", fn_regular="C:/Windows/Fonts/msyh.ttc")
+            LabelBase.register("Roboto", fn_regular=bundled)
+            return
         except Exception:
             pass
+    # 兜底：桌面系统字体
+    for f in ["C:/Windows/Fonts/Deng.ttf", "C:/Windows/Fonts/msyh.ttc",
+              "C:/Windows/Fonts/simhei.ttf"]:
+        if os.path.exists(f):
+            try:
+                LabelBase.register("Roboto", fn_regular=f)
+                return
+            except Exception:
+                continue
 
 
 def _gradient_texture(width, height, stops):
