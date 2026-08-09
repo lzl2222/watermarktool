@@ -23,6 +23,14 @@
           "photosPermission": "允许「去水印」访问相册以保存下载的图片和视频",
           "savePhotosPermission": "允许「去水印」保存图片和视频到相册"
         }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
       ]
     ]
   }

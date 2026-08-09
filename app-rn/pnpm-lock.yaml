@@ -17,6 +17,9 @@ importers:
       expo:
         specifier: ~57.0.11
         version: 57.0.11(@babel/core@7.29.7(supports-color@8.1.1))(@expo/dom-webview@57.0.1)(@expo/metro-runtime@57.0.8)(react-dom@19.2.3(react@19.2.3))(react-native-web@0.21.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(@types/react@19.2.18)(react@19.2.3)(supports-color@8.1.1))(react@19.2.3)(supports-color@8.1.1)(typescript@6.0.3)
+      expo-build-properties:
+        specifier: ~57.0.9
+        version: 57.0.9(expo@57.0.11)
       expo-file-system:
         specifier: ~57.0.2
         version: 57.0.2(expo@57.0.11)(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(@types/react@19.2.18)(react@19.2.3)(supports-color@8.1.1))
@@ -1070,6 +1073,11 @@ packages:
       expo: '*'
       react: '*'
       react-native: '*'
+
+  expo-build-properties@57.0.9:
+    resolution: {integrity: sha512-IX8Nz85yNDZyqBK7zbLEfn4ijMGaF6TmLjCY2KE0UKltUoV78DhgN6ksPZbDbPDvqLpU2fMY/5OD4CbYB7hHwg==}
+    peerDependencies:
+      expo: '*'
 
   expo-constants@57.0.9:
     resolution: {integrity: sha512-Y47sGiF+U8fwicUSPdJPjB27PuU+FgLK4Mpai0ksZF5hv8jNN3HBqKuDNxsiu70uHBKf80TaR4gwMPh0pmETiQ==}
@@ -3535,6 +3543,13 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
       - typescript
+
+  expo-build-properties@57.0.9(expo@57.0.11):
+    dependencies:
+      '@expo/schema-utils': 57.0.2
+      expo: 57.0.11(@babel/core@7.29.7(supports-color@8.1.1))(@expo/dom-webview@57.0.1)(@expo/metro-runtime@57.0.8)(react-dom@19.2.3(react@19.2.3))(react-native-web@0.21.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(@types/react@19.2.18)(react@19.2.3)(supports-color@8.1.1))(react@19.2.3)(supports-color@8.1.1)(typescript@6.0.3)
+      resolve-from: 5.0.0
+      semver: 7.8.5
 
   expo-constants@57.0.9(expo@57.0.11)(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(@types/react@19.2.18)(react@19.2.3)(supports-color@8.1.1))(supports-color@8.1.1):
     dependencies:
