@@ -1,4 +1,4 @@
-﻿[app]
+[app]
 title = 去水印
 package.name = watermarktool
 package.domain = org.watermark
@@ -18,7 +18,6 @@ android.minapi = 24
 android.allow_backup = False
 android.entrypoint = main.py
 android.permissions = INTERNET,WRITE_EXTERNAL_STORAGE,READ_MEDIA_IMAGES,READ_MEDIA_VIDEO
-android.add_src = .
 android.private_storage = True
 
 [buildozer]
