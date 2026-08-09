@@ -328,7 +328,7 @@ class App(ctk.CTk):
                      text_color=T["header_text"]).place(x=PAD, y=12)
         ctk.CTkLabel(hdr, text="豆包 / 小红书 / 抖音  无水印一键下载",
                      font=ctk.CTkFont("Microsoft YaHei", 11),
-                     text_color="#EDEDF8").place(x=PAD, y=46)
+                     text_color=T["header_sub"]).place(x=PAD, y=46)
 
         self._theme_btn = ctk.CTkButton(
             hdr, text="🌗 深色" if self.theme_name == "glass_light" else "🌗 浅色",
@@ -642,6 +642,11 @@ class App(ctk.CTk):
         ctk.set_appearance_mode(self.T["appearance"])
         self.configure(fg_color=self.T["window_bg"])
         meta = self._meta
+        # 关键：先销毁窗口内全部旧控件，否则重建时会与新控件叠加重复
+        self._video_player = None
+        self._cards = []
+        for w in self.winfo_children():
+            w.destroy()
         self._build_ui()
         if meta:
             self._render_meta(meta)

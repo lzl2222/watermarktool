@@ -1,10 +1,13 @@
 ﻿# -*- coding: utf-8 -*-
 """
-theme.py — 苹果液态玻璃（Liquid Glass）主题
+theme.py — 液态玻璃（Liquid Glass / Glassmorphism）主题系统
+设计依据：ui-ux-pro-max skill 设计系统（玻璃质感 + OLED 深色 / 清新浅色）
 
-提供两套配色：浅色玻璃（Apple 经典） / 深色玻璃（Tahoe 深色模式）。
-由于 tkinter 不支持真实的背景模糊，用「半透明白色面板 + 细描边 + 大圆角 +
-渐变玻璃头部」来模拟液态玻璃质感。
+设计要点：
+- 玻璃面板：半透明白 + 细描边（1px rgba white 0.08~0.2）+ 大圆角 + 悬浮阴影感
+- 文字对比度 ≥ 4.5:1（浅色主题头部用深色文字，深色主题用白色文字）
+- 强调色：浅色=蓝(#2563EB)/紫(#7C3AED)，深色=粉(#EC4899)/蓝(#2563EB)
+- 圆角：面板 18~24px，按钮 14~16px，输入框 12px
 """
 
 import customtkinter as ctk
@@ -12,81 +15,107 @@ from PIL import Image
 
 
 # ────────────────────────────────────────────────────────────────────────────
-# 主题定义
+# 主题定义（每套主题自带全部语义色，切主题即全局生效）
 # ────────────────────────────────────────────────────────────────────────────
 THEMES = {
-    # ── 浅色液态玻璃（Apple Liquid Glass 经典）──────────────────────────────
+    # ── 浅色液态玻璃（Glassmorphism Light）──────────────────────────────────
     "glass_light": {
-        "name":          "液态玻璃 · 浅色",
-        "appearance":    "light",
-        # 窗口背景（Apple 系统灰）
-        "window_bg":     "#F2F2F7",
+        "name":        "液态玻璃 · 浅色",
+        "appearance":  "light",
+
+        # 窗口 / 背景
+        "window_bg":   "#F2F2F7",
+
         # 玻璃面板
         "panel":         "#FFFFFF",
-        "panel_alt":     "#F7F7FA",
+        "panel_alt":     "#F4F4F8",
         "panel_border":  "#E3E3EC",
+        "panel_shadow":  "#D8D8E2",   # 模拟悬浮阴影（进度条底等）
+
         # 输入框
         "entry":         "#FFFFFF",
-        "entry_border":  "#D8D8E3",
-        # 文字
+        "entry_border":  "#D9D9E4",
+
+        # 文字（浅色主题用深色文字保证对比度）
         "text":          "#1D1D1F",
-        "text_sec":      "#6E6E73",
-        "text_faint":    "#A2A2AC",
-        "placeholder":   "#B8B8C4",
-        # 强调色（Apple 蓝 / 紫）
-        "accent":        "#007AFF",
-        "accent_hover":  "#0060DF",
-        "accent_soft":   "#EAF3FF",
-        "accent2":       "#AF52DE",
+        "text_sec":      "#5B5B68",
+        "text_faint":    "#8E8E9B",
+        "placeholder":   "#B7B7C3",
+
+        # 强调色
+        "accent":        "#2563EB",   # 主操作（解析/下载）
+        "accent_hover":  "#1D4ED8",
+        "accent_soft":   "#EAF1FF",
+        "accent2":       "#7C3AED",   # 次级高亮（紫）
+        "accent2_hover": "#6D28D9",
+
         # 状态色
-        "ok":            "#34C759",
-        "err":           "#FF3B30",
-        "warn":          "#FF9500",
-        # 头部渐变（柔和的玻璃彩虹）
-        "header_grad":   [(88, 138, 255), (130, 120, 255), (210, 120, 220), (255, 138, 178)],
-        "header_text":   "#FFFFFF",
+        "ok":            "#16A34A",
+        "err":           "#DC2626",
+        "warn":          "#D97706",
+
+        # 头部渐变（中饱和蓝→紫→粉，配深色文字保证 4.5:1）
+        "header_grad":   [(59, 108, 245), (124, 92, 245), (210, 90, 170)],
+        "header_text":   "#0F172A",
+        "header_sub":    "#334155",
+
         # 视频播放器
         "player_bg":     "#0B0B10",
         "play_btn_bg":   "#FFFFFF",
-        "play_btn_fg":   "#007AFF",
+        "play_btn_fg":   "#2563EB",
+
         # 卡片
         "card":          "#FFFFFF",
         "card_border":   "#E3E3EC",
+
         # 滚动条
-        "scroll":        "#C7C7D1",
-        "scroll_hover":  "#AEAEB8",
+        "scroll":        "#C9C9D4",
+        "scroll_hover":  "#B0B0BD",
     },
 
-    # ── 深色液态玻璃（Tahoe 深色）───────────────────────────────────────────
+    # ── 深色液态玻璃（Glassmorphism Dark / OLED）────────────────────────────
     "glass_dark": {
-        "name":          "液态玻璃 · 深色",
-        "appearance":    "dark",
-        "window_bg":     "#000000",
-        "panel":         "#1C1C1E",
-        "panel_alt":     "#242426",
-        "panel_border":  "#38383A",
-        "entry":         "#1C1C1E",
-        "entry_border":  "#48484A",
-        "text":          "#F5F5F7",
-        "text_sec":      "#98989D",
-        "text_faint":    "#6E6E73",
-        "placeholder":   "#5A5A60",
-        "accent":        "#0A84FF",
-        "accent_hover":  "#0071E3",
-        "accent_soft":   "#0A2540",
-        "accent2":       "#BF5AF2",
-        "ok":            "#30D158",
-        "err":           "#FF453A",
-        "warn":          "#FF9F0A",
-        "header_grad":   [(24, 52, 130), (56, 40, 140), (130, 38, 130), (190, 40, 110)],
+        "name":        "液态玻璃 · 深色",
+        "appearance":  "dark",
+
+        "window_bg":   "#0F172A",    # 深空蓝黑（OLED 友好）
+
+        "panel":         "#1B2536",
+        "panel_alt":     "#232F44",
+        "panel_border":  "#33415A",
+        "panel_shadow":  "#0A0F1E",
+
+        "entry":         "#1B2536",
+        "entry_border":  "#3D4B68",
+
+        "text":          "#F1F5F9",
+        "text_sec":      "#A7B1C4",
+        "text_faint":    "#6E7B91",
+        "placeholder":   "#5A6780",
+
+        "accent":        "#EC4899",   # 主操作（视频粉）
+        "accent_hover":  "#DB2777",
+        "accent_soft":   "#3B1A33",
+        "accent2":       "#2563EB",   # 次级（时序蓝）
+        "accent2_hover": "#1D4ED8",
+
+        "ok":            "#34D399",
+        "err":           "#F87171",
+        "warn":          "#FBBF24",
+
+        "header_grad":   [(30, 58, 138), (76, 29, 149), (131, 24, 67)],
         "header_text":   "#FFFFFF",
+        "header_sub":    "#D3D9E6",
+
         "player_bg":     "#000000",
         "play_btn_bg":   "#FFFFFF",
-        "play_btn_fg":   "#0A84FF",
-        "card":          "#1C1C1E",
-        "card_border":   "#38383A",
-        "scroll":        "#48484A",
-        "scroll_hover":  "#5A5A60",
+        "play_btn_fg":   "#EC4899",
+
+        "card":          "#1B2536",
+        "card_border":   "#33415A",
+
+        "scroll":        "#3D4B68",
+        "scroll_hover":  "#526183",
     },
 }
 
@@ -98,13 +127,10 @@ def get(theme_name: str) -> dict:
 
 
 # ────────────────────────────────────────────────────────────────────────────
-# 渐变背景生成
+# 渐变背景
 # ────────────────────────────────────────────────────────────────────────────
 def make_gradient(width: int, height: int, stops: list) -> Image.Image:
-    """
-    生成水平渐变图（stops 为 [(r,g,b), ...]，从左到右均匀分布）。
-    用于玻璃头部等需要渐变质感的位置。
-    """
+    """水平渐变图（stops 为 [(r,g,b),...]，从左到右）"""
     if len(stops) < 2:
         stops = stops + [(0, 0, 0)]
     w1 = max(len(stops), 2)
@@ -120,10 +146,10 @@ def gradient_image(width: int, height: int, stops: list) -> ctk.CTkImage:
 
 
 # ────────────────────────────────────────────────────────────────────────────
-# 便捷工厂：玻璃面板 / 玻璃按钮 / 玻璃输入框
+# 便捷工厂
 # ────────────────────────────────────────────────────────────────────────────
 def glass_frame(parent, T: dict, corner_radius: int = 18, **kw):
-    """玻璃面板"""
+    """玻璃面板：面板色 + 细描边 + 大圆角"""
     kw.setdefault("fg_color", T["panel"])
     kw.setdefault("border_width", 1)
     kw.setdefault("border_color", T["panel_border"])
@@ -142,7 +168,7 @@ def glass_entry(parent, T: dict, **kw):
 
 
 def accent_button(parent, T: dict, text: str, **kw):
-    """强调色（Apple 蓝）按钮"""
+    """主强调色按钮（随主题：浅色=蓝 / 深色=粉）"""
     kw.setdefault("fg_color", T["accent"])
     kw.setdefault("hover_color", T["accent_hover"])
     kw.setdefault("text_color", "#FFFFFF")
@@ -152,7 +178,7 @@ def accent_button(parent, T: dict, text: str, **kw):
 
 
 def ghost_button(parent, T: dict, text: str, **kw):
-    """玻璃透明按钮（面板色，细描边）"""
+    """玻璃幽灵按钮：面板色 + 细描边"""
     kw.setdefault("fg_color", T["panel"])
     kw.setdefault("hover_color", T["panel_alt"])
     kw.setdefault("text_color", T["text_sec"])
