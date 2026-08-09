@@ -11,7 +11,7 @@ theme.py — 液态玻璃（Liquid Glass / Glassmorphism）主题系统
 """
 
 import customtkinter as ctk
-from PIL import Image
+from PIL import Image, ImageDraw
 
 
 # ────────────────────────────────────────────────────────────────────────────
@@ -187,3 +187,34 @@ def ghost_button(parent, T: dict, text: str, **kw):
     kw.setdefault("corner_radius", 12)
     kw.setdefault("font", ctk.CTkFont("Microsoft YaHei", 11))
     return ctk.CTkButton(parent, text=text, **kw)
+
+
+# ────────────────────────────────────────────────────────────────────────────
+# 图标生成（PIL 绘制，避免 emoji 在 Windows 下渲染成黑方块）
+# ────────────────────────────────────────────────────────────────────────────
+def _hex2rgb(h: str):
+    h = (h or "#000000").lstrip("#")
+    return tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
+
+
+def icon_play(size: int, color: str) -> ctk.CTkImage:
+    """右向播放三角"""
+    img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    c = _hex2rgb(color)
+    d.polygon([(size*0.32, size*0.16), (size*0.80, size*0.50), (size*0.32, size*0.84)],
+              fill=c + (255,))
+    return ctk.CTkImage(img, img, (size, size))
+
+
+def icon_pause(size: int, color: str) -> ctk.CTkImage:
+    """双竖条暂停"""
+    img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    c = _hex2rgb(color)
+    w = size * 0.20
+    r = max(1, size // 20)
+    d.rounded_rectangle([size*0.24, size*0.16, size*0.24+w, size*0.84], radius=r, fill=c + (255,))
+    d.rounded_rectangle([size*0.56, size*0.16, size*0.56+w, size*0.84], radius=r, fill=c + (255,))
+    return ctk.CTkImage(img, img, (size, size))
+

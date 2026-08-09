@@ -88,10 +88,10 @@ class InlineVideoPlayer:
         self.lbl.pack(fill="both", expand=True)
 
         # 中央播放键（未播放时显示；播放后移到右下角变成暂停键）
-        self.btn = ctk.CTkButton(self.frame, text="▶", width=58, height=58,
+        self.btn = ctk.CTkButton(self.frame, text="", width=58, height=58,
                                   corner_radius=29, fg_color=self.T["play_btn_bg"],
-                                  hover_color="#E4E4F0", text_color=self.T["play_btn_fg"],
-                                  font=ctk.CTkFont(size=24),
+                                  hover_color="#E4E4F0",
+                                  image=ui_theme.icon_play(26, self.T["play_btn_fg"]),
                                   command=self._toggle)
         self.btn.place(relx=0.5, rely=0.5, anchor="center")
         self._show_placeholder()
@@ -144,14 +144,15 @@ class InlineVideoPlayer:
 
     # 按钮位置：中央播放键 ↔ 右下角小暂停键
     def _to_center(self):
-        self.btn.configure(text="▶", width=58, height=58, corner_radius=29,
-                           fg_color=self.T["play_btn_bg"], text_color=self.T["play_btn_fg"])
+        self.btn.configure(text="", width=58, height=58, corner_radius=29,
+                           fg_color=self.T["play_btn_bg"],
+                           image=ui_theme.icon_play(26, self.T["play_btn_fg"]))
         self.btn.place(relx=0.5, rely=0.5, anchor="center")
 
     def _to_corner(self):
-        self.btn.configure(text="❚❚", width=36, height=36, corner_radius=18,
-                           fg_color="#000000", text_color="#FFFFFF",
-                           hover_color="#333333")
+        self.btn.configure(text="", width=36, height=36, corner_radius=18,
+                           fg_color="#000000", hover_color="#333333",
+                           image=ui_theme.icon_pause(22, "#FFFFFF"))
         self.btn.place(relx=1.0, rely=1.0, x=-14, y=-14, anchor="se")
 
     def _toggle(self):
@@ -232,9 +233,9 @@ class MediaCard:
         bar.pack(fill="x")
         bar.pack_propagate(False)
 
-        type_map = {"live_photo": ("🎬", "动图"), "video": ("🎥", "视频"), "image": ("🖼", "图")}
-        icon, tname = type_map.get(item["type"], ("🖼", ""))
-        ctk.CTkLabel(bar, text=f"{icon} {tname} {index+1}", font=ctk.CTkFont(size=11),
+        type_map = {"live_photo": "动图", "video": "视频", "image": "图"}
+        tname = type_map.get(item["type"], "")
+        ctk.CTkLabel(bar, text=f"{tname} {index+1}", font=ctk.CTkFont(size=11),
                      text_color=self.T["text_sec"]).pack(side="left", padx=8)
 
         ctk.CTkCheckBox(bar, text="", variable=self._selected,
@@ -331,8 +332,8 @@ class App(ctk.CTk):
                      text_color=T["header_sub"]).place(x=PAD, y=46)
 
         self._theme_btn = ctk.CTkButton(
-            hdr, text="🌗 深色" if self.theme_name == "glass_light" else "🌗 浅色",
-            width=78, height=30, corner_radius=15,
+            hdr, text="深色" if self.theme_name == "glass_light" else "浅色",
+            width=64, height=30, corner_radius=15,
             fg_color="#FFFFFF", hover_color="#E8E8F5", text_color="#3A3A4A",
             font=ctk.CTkFont("Microsoft YaHei", 11, "bold"),
             command=self._toggle_theme)
@@ -343,7 +344,7 @@ class App(ctk.CTk):
         sid_bar.pack(fill="x", padx=PAD, pady=(10, 0))
         sid_bar.pack_propagate(False)
 
-        ctk.CTkLabel(sid_bar, text="🤖 豆包 ID", font=ctk.CTkFont("Microsoft YaHei", 11, "bold"),
+        ctk.CTkLabel(sid_bar, text="豆包 ID", font=ctk.CTkFont("Microsoft YaHei", 11, "bold"),
                      text_color=T["text_sec"]).pack(side="left", padx=(12, 6), pady=9)
 
         self._sid_entry = ui_theme.glass_entry(sid_bar, T, textvariable=self.sessionid,
@@ -352,7 +353,7 @@ class App(ctk.CTk):
                                                 placeholder_text="sessionid（可选，不填则公开模式）")
         self._sid_entry.pack(side="left", fill="x", expand=True, padx=(0, 6), pady=7)
 
-        ui_theme.ghost_button(sid_bar, T, "👁", width=30, height=26, corner_radius=10,
+        ui_theme.ghost_button(sid_bar, T, "显示", width=44, height=26, corner_radius=10,
                               font=ctk.CTkFont(size=11), command=self._toggle_sid
                               ).pack(side="left", padx=(0, 4), pady=7)
 
@@ -377,24 +378,25 @@ class App(ctk.CTk):
         self._url_entry.bind("<FocusIn>",   self._auto_paste)
         self._url_entry.bind("<KeyRelease>", self._on_url_change)
 
-        ctk.CTkButton(url_row, text="解析", width=70, height=38, corner_radius=13,
-                      fg_color=T["accent"], hover_color=T["accent_hover"], text_color="#FFFFFF",
-                      font=ctk.CTkFont("Microsoft YaHei", 13, "bold"),
-                      command=self._start_parse).pack(side="right", padx=(0, 8))
+        self._parse_btn = ctk.CTkButton(url_row, text="解析", width=70, height=38, corner_radius=13,
+                                          fg_color=T["accent"], hover_color=T["accent_hover"], text_color="#FFFFFF",
+                                          font=ctk.CTkFont("Microsoft YaHei", 13, "bold"),
+                                          command=self._start_parse)
+        self._parse_btn.pack(side="right", padx=(0, 8))
 
         # ── 保存目录（玻璃面板） ──────────────────────────────────────────────
         dir_row = ui_theme.glass_frame(self, T, corner_radius=14, height=40)
         dir_row.pack(fill="x", padx=PAD, pady=(10, 0))
         dir_row.pack_propagate(False)
 
-        ctk.CTkLabel(dir_row, text="💾 保存至:", font=ctk.CTkFont("Microsoft YaHei", 11),
+        ctk.CTkLabel(dir_row, text="保存至:", font=ctk.CTkFont("Microsoft YaHei", 11),
                      text_color=T["text_sec"]).pack(side="left", padx=(12, 6), pady=9)
 
         self._save_entry = ui_theme.glass_entry(dir_row, T, textvariable=self.save_dir,
                                                  height=26, font=ctk.CTkFont("Microsoft YaHei", 10))
         self._save_entry.pack(side="left", fill="x", expand=True, padx=(0, 6), pady=7)
 
-        ui_theme.ghost_button(dir_row, T, "📁", width=32, height=26, corner_radius=10,
+        ui_theme.ghost_button(dir_row, T, "浏览", width=46, height=26, corner_radius=10,
                               font=ctk.CTkFont(size=12), command=self._pick_dir
                               ).pack(side="right", padx=(0, 8), pady=7)
 
@@ -419,14 +421,14 @@ class App(ctk.CTk):
         btn_row = ctk.CTkFrame(self, fg_color="transparent")
         btn_row.pack(fill="x", padx=PAD, pady=(10, 12))
 
-        self._dl_btn = ctk.CTkButton(btn_row, text="⬇  解析后即可下载", height=48, corner_radius=16,
+        self._dl_btn = ctk.CTkButton(btn_row, text="解析后即可下载", height=48, corner_radius=16,
                                       fg_color=T["accent"], hover_color=T["accent_hover"],
                                       text_color="#FFFFFF",
                                       font=ctk.CTkFont("Microsoft YaHei", 13, "bold"),
                                       state="disabled", command=self._start_download)
         self._dl_btn.pack(side="left", fill="x", expand=True, padx=(0, 8))
 
-        ui_theme.ghost_button(btn_row, T, "📂", width=48, height=48, corner_radius=16,
+        ui_theme.ghost_button(btn_row, T, "打开", width=48, height=48, corner_radius=16,
                               font=ctk.CTkFont(size=18), command=self._open_folder
                               ).pack(side="right")
 
@@ -444,7 +446,7 @@ class App(ctk.CTk):
     def _show_empty_content(self):
         self._clear_content()
         ctk.CTkLabel(self._content_frame,
-                     text="📱  解析成功后在此展示内容\n\n支持：图文 / 动态图 / 视频",
+                     text="解析成功后在此展示内容\n\n支持：图文 / 动态图 / 视频",
                      font=ctk.CTkFont("Microsoft YaHei", 13),
                      text_color=self.T["text_faint"]).pack(expand=True)
         self._video_player = None
@@ -465,7 +467,7 @@ class App(ctk.CTk):
                      font=ctk.CTkFont("Microsoft YaHei", 10, "bold"),
                      text_color="#FFFFFF", padx=8, pady=2).pack(side="left")
         if meta.get("no_watermark"):
-            ctk.CTkLabel(badge_row, text="✅ 无水印",
+            ctk.CTkLabel(badge_row, text="无水印",
                          fg_color=T["ok"], corner_radius=8,
                          font=ctk.CTkFont("Microsoft YaHei", 10, "bold"),
                          text_color="#FFFFFF", padx=8, pady=2).pack(side="left", padx=6)
@@ -474,7 +476,7 @@ class App(ctk.CTk):
         w, h = meta.get("width", 0), meta.get("height", 0)
         res_txt = f"  {w}×{h}" if w and h else ""
         ctk.CTkLabel(badge_row,
-                     text=f"👤 {meta.get('author','')}{res_txt}",
+                     text=f"作者 {meta.get('author','')}{res_txt}",
                      font=ctk.CTkFont("Microsoft YaHei", 11),
                      text_color=T["text_sec"]).pack(side="right")
 
@@ -521,15 +523,15 @@ class App(ctk.CTk):
         from collections import Counter
         cnt = Counter(it["type"] for it in meta["media_items"])
         parts = []
-        if cnt.get("image"):      parts.append(f"🖼 图 {cnt['image']}")
-        if cnt.get("live_photo"): parts.append(f"🎬 动图 {cnt['live_photo']}")
-        if cnt.get("video"):      parts.append(f"🎥 视频 {cnt['video']}")
+        if cnt.get("image"):      parts.append(f"图 {cnt['image']}")
+        if cnt.get("live_photo"): parts.append(f"动图 {cnt['live_photo']}")
+        if cnt.get("video"):      parts.append(f"视频 {cnt['video']}")
         ctk.CTkLabel(info_row,
                      text="  ".join(parts) + f"　共 {len(meta['media_items'])} 项",
                      font=ctk.CTkFont("Microsoft YaHei", 11),
                      text_color=T["text_sec"]).pack(side="right")
 
-        ctk.CTkLabel(info_row, text=f"👤 {meta.get('author','')}",
+        ctk.CTkLabel(info_row, text=f"作者 {meta.get('author','')}",
                      font=ctk.CTkFont("Microsoft YaHei", 11),
                      text_color=T["text_faint"]).pack(side="right", padx=10)
 
@@ -609,7 +611,7 @@ class App(ctk.CTk):
         cfg["sessionid"] = self.sessionid.get().strip()
         cfg["save_dir"]  = self.save_dir.get()
         _save_cfg(cfg)
-        self._set_status("✅ Session ID 已保存", self.T["ok"])
+        self._set_status("Session ID 已保存", self.T["ok"])
 
     def _pick_dir(self):
         d = filedialog.askdirectory(initialdir=self.save_dir.get())
@@ -673,7 +675,7 @@ class App(ctk.CTk):
         pm   = platform_detector.get_meta(plat)
         if plat != "unknown":
             self._badge.configure(
-                text=f"{pm['icon']}\n{pm['name']}",
+                text=pm["name"],
                 fg_color=pm["badge_color"],
                 text_color="#FFFFFF")
         else:
@@ -741,26 +743,26 @@ class App(ctk.CTk):
 
         if meta["type"] in ("video", "live_photo") and len(meta["media_items"]) == 1:
             self._show_video_content(meta)
-            dl_text = "⬇  下载视频（无水印）"
+            dl_text = "下载视频（无水印）"
         elif meta["type"] == "live_photo":
             # 多动图 → 网格
             self._show_image_grid(meta)
-            dl_text = "⬇  下载所选动图视频"
+            dl_text = "下载所选动图视频"
         else:
             # image
             self._show_image_grid(meta)
-            dl_text = f"⬇  下载所选图片（共 {len(meta['media_items'])} 张）"
+            dl_text = f"下载所选图片（共 {len(meta['media_items'])} 张）"
 
         self._dl_btn.configure(state="normal", text=dl_text)
         self._set_status(
-            f"✅ 解析成功 | {pm['icon']} {pm['name']} | "
+            f"解析成功 | {pm['name']} | "
             f"{'无水印' if meta.get('no_watermark') else '含水印'}",
             self.T["ok"])
         self._progress.set(0.1)
 
     def _on_parse_fail(self, msg):
         self._parse_btn.configure(state="normal", text="解析")
-        self._set_status(f"❌ 解析失败: {msg[:60]}", self.T["err"])
+        self._set_status(f"解析失败: {msg[:60]}", self.T["err"])
         messagebox.showerror("解析失败", f"链接解析失败：\n{msg}")
 
     # ─────────────────────────── 下载流程 ────────────────────────────────────
@@ -850,10 +852,10 @@ class App(ctk.CTk):
         self._progress.set(1.0)
         self._reset_btn()
         if len(paths) == 1:
-            self._set_status(f"✅ 下载完成：{os.path.basename(paths[0])}", self.T["ok"])
+            self._set_status(f"下载完成：{os.path.basename(paths[0])}", self.T["ok"])
         else:
-            self._set_status(f"✅ 下载完成，共 {len(paths)} 个文件", self.T["ok"])
-        if messagebox.askyesno("下载成功 🎉",
+            self._set_status(f"下载完成，共 {len(paths)} 个文件", self.T["ok"])
+        if messagebox.askyesno("下载成功",
                                f"已保存 {len(paths)} 个文件到：\n{self.save_dir.get()}\n\n是否打开文件夹？"):
             import webbrowser
             webbrowser.open(f"file:///{self.save_dir.get()}")
@@ -861,7 +863,7 @@ class App(ctk.CTk):
     def _on_dl_fail(self, msg):
         self._progress.set(0)
         self._reset_btn()
-        self._set_status(f"❌ 下载失败: {msg[:60]}", self.T["err"])
+        self._set_status(f"下载失败: {msg[:60]}", self.T["err"])
         messagebox.showerror("下载失败", msg)
 
     def _reset_btn(self):
@@ -870,13 +872,13 @@ class App(ctk.CTk):
         if meta:
             t = meta.get("type", "")
             if t == "video":
-                txt = "⬇  下载视频（无水印）"
+                txt = "下载视频（无水印）"
             elif t == "live_photo":
-                txt = "⬇  下载所选动图视频"
+                txt = "下载所选动图视频"
             else:
-                txt = f"⬇  下载所选图片（共 {len(meta['media_items'])} 张）"
+                txt = f"下载所选图片（共 {len(meta['media_items'])} 张）"
         else:
-            txt = "⬇  解析后即可下载"
+            txt = "解析后即可下载"
         self._dl_btn.configure(state="normal" if meta else "disabled", text=txt)
 
 
