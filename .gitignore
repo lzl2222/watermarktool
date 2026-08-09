@@ -9,3 +9,10 @@ venv/
 
 doubao-nomark/
 doubao-video-downloader/
+
+__pycache__/
+*.pyc
+mobile/downloads/
+mobile/history.db
+mobile/bin/
+mobile/.buildozer/
