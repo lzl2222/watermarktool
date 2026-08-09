@@ -14,6 +14,7 @@ fullscreen = 0
 # 小米手机 = arm64-v8a
 android.archs = arm64-v8a
 android.api = 34
+android.python_version = 3.11
 android.minapi = 24
 android.allow_backup = False
 android.accept_sdk_license = True
