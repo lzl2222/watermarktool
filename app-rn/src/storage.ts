@@ -49,7 +49,7 @@ export async function downloadItem(item: DlItem, name: string): Promise<{ uri: s
 /** 把本地文件保存到系统相册（授权后） */
 export async function saveToGallery(localUri: string): Promise<string> {
   // 延迟导入：避免 Web 预览因原生模块加载崩溃（真机/Expo Go 正常）
-  const MediaLibrary = await import("expo-media-library");
+  const MediaLibrary = await import("expo-media-library/legacy");
   const perm = await MediaLibrary.requestPermissionsAsync();
   if (!perm.granted) throw new Error("未获得相册权限，请在系统设置中允许");
   const asset = await MediaLibrary.createAssetAsync(localUri);
